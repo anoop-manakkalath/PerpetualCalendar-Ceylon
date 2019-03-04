@@ -7,11 +7,13 @@ import ceylon.decimal {
 }
 
 "The perpetual calendar class"
-shared class PerpetualCalendar() {
+class PerpetualCalendar(dmy) {
+	
+	shared {String+} dmy;
 	
 	value weekAnchorDays = HashMap<Integer,String> { 0->"Sunday", 1->"Monday", 2->"Tuesday", 3->"Wednesday",
 		4->"Thursday", 5->"Friday", 6->"Saturday" };
-	
+
 	value months = HashMap<Integer,String> { 1->"JAN", 2->"FEB", 3->"MAR", 4->"APR", 5->"MAY", 6->"JUN", 7->"JUL",
 		8->"AUG", 9->"SEP", 10->"OCT", 11->"NOV", 12->"DEC" };
 	
@@ -36,14 +38,11 @@ shared class PerpetualCalendar() {
 		variable Integer? centuaryAnchorDay = null;
 		if (year>=2100 && year<2200) {
 			centuaryAnchorDay = centuryAnchorDay.get(22);
-		}
-		else if (year>=2000 && year<2100) {
+		} else if (year>=2000 && year<2100) {
 			centuaryAnchorDay = centuryAnchorDay.get(21);
-		}
-		else if (year>=1900 && year<2000) {
+		} else if (year>=1900 && year<2000) {
 			centuaryAnchorDay = centuryAnchorDay.get(20);
-		}
-		else if (year>=1800 && year<1900) {
+		} else if (year>=1800 && year<1900) {
 			centuaryAnchorDay = centuryAnchorDay.get(19);
 		}
 		return centuaryAnchorDay else -1;
@@ -73,42 +72,35 @@ shared class PerpetualCalendar() {
 			date -= 7;
 		}
 		date = date - monthAnchorDay + doomsDay;
-		if (date < 0) {
+		while (date < 0) {
 			date += 7;
 		}
 		return weekAnchorDays.get(date) else "";
 	}
 	
 	"calculates the day of the given date"
-	shared void calculateDay({String+} dmy) {
-		value date = (parseDecimal(dmy.first) else decimalNumber(-1)).integer;
-		value year = (parseDecimal(dmy.last) else decimalNumber(-1)).integer;
-		if (date < 0 || year < 0 || getCentuaryAnchorDay(year) < 0) {
-			print("Please enter a date between 1800-Jan-01 && 2199-Dec-31");
-			return;
-		}
-		variable value month = "";
-		for (i->str in dmy.indexed) {
-			if (i == 1) {
-				value monthNum = (parseDecimal(str) else decimalNumber(-1)).integer;
-				if (monthNum > 0) {
-					month = months.get(monthNum) else "";
-				}
-				else {
-					value x = monthAnchorDays.get(str.uppercased) else -1;
-					if (x > 0) {
-						month = str.uppercased;
-					}
-				}
-				break;
+	shared void calculateDay() {
+        value date = (parseDecimal(dmy.first) else decimalNumber(-1)).integer;
+        value year = (parseDecimal(dmy.last) else decimalNumber(-1)).integer;
+        if (date<0 || year<0 || getCentuaryAnchorDay(year)<0) {
+            print("Please enter a date between 1800-Jan-01 && 2199-Dec-31");
+            return;
+        }
+        variable value month = "";
+        for (i->str in dmy.indexed) {
+            if (i == 1) {
+                month = str.uppercased;
+                break;
+            }
+        }
+        if (!months.items.contains(month)) {
+            value monthNum = (parseDecimal(month) else decimalNumber(-1)).integer;
+            month = months.get(monthNum) else "";
+			if (month == "") {
+				print("Invalid month!");
+				return;
 			}
-		}
-		
-		if (month == "") {
-			print("Invalid month!");
-			return;
-		}
-		
+        }
 		value doomsDay = getDoomsday(year);
 		print("``date``, ``month``, ``year``");
 		print("The dooms day is ``doomsDay``");
